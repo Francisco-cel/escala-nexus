@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala Nexus</title>
+    <meta name="theme-color" content="#0755c9">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .painel {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 450px;
+            margin: auto;
+        }
+
+        input, button {
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        button {
+            background: #f07824;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            text-align: left;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="painel">
+        <h1>Escala Nexus</h1>
+        <h3>Barbacena — Consulta de turnos</h3>
+
+        <label for="data">Escolha a data:</label>
+        <br>
+        <input type="date" id="data"
+               min="2026-10-01"
+               max="2040-12-31"
+               value="2026-10-01">
+        <br>
+
+        <button onclick="consultarEscala()">
+            Consultar escala
+        </button>
+
+        <div id="resultado" class="resultado">
+            Escolha uma data e consulte.
+        </div>
+    </div>
+
+    <script>
+        function consultarEscala() {
+            const data = document.getElementById("data").value;
+            const resultado = document.getElementById("resultado");
+
+            if (!data) {
+                resultado.textContent = "Escolha uma data.";
+                return;
+            }
+
+            const partes = data.split("-").map(Number);
+
+            const dataEscolhida = Date.UTC(
+                partes[0], partes[1] - 1, partes[2]
+            );
+
+            // Data de referência: 1º de outubro de 2026
+            const referencia = Date.UTC(2026, 9, 1);
+
+            const diferenca = Math.round(
+                (dataEscolhida - referencia) / 86400000
+            );
+
+            // Ciclo de oito dias observado na tabela
+            const diaCiclo = ((diferenca % 8) + 8) % 8;
+
+            const diurno = ["B", "B", "C", "C", "A", "A", "D", "D"];
+            const noturno = ["D", "D", "B", "B", "C", "C", "A", "A"];
+
+            const turmaDia = diurno[diaCiclo];
+            const turmaNoite = noturno[diaCiclo];
+            const compensacaoPorDia = [
+             "A", null, "D", null,
+             "B", null, "C", null
+             ];
+
+const compensacao = compensacaoPorDia[diaCiclo];
+
+            const todas = ["A", "B", "C", "D"];
+
+            const folga = todas.filter(
+    turma => turma !== turmaDia &&
+             turma !== turmaNoite &&
+             turma !== compensacao
+);
+
+            const dataFormatada = partes[2] + "/" +
+                String(partes[1]).padStart(2, "0") + "/" +
+                partes[0];
+
+            resultado.innerHTML =
+                "<strong>Data:</strong> " + dataFormatada + "<br>" +
+                "<strong>Diurno (07h–19h):</strong> Turma " + turmaDia + "<br>" +
+                "<strong>Noturno (19h–07h):</strong> Turma " + turmaNoite + "<br>" +
+                "<strong>Compensação:</strong> " +
+                (compensacao || "Nenhuma") + "<br>" +
+                "<strong>Folga:</strong> Turmas " + folga.join(" e ");
+        }
+
+        consultarEscala();
+    </script>
+</body>
+</html>
